@@ -1,15 +1,18 @@
+// obligatoire pour fonctionnement
 import React from "react";
+// bach katssawab design dyal interface li f application, b7al button,image,couleur,text ...
 import { SafeAreaView,Text,View,StyleSheet,PermissionsAndroid, NativeModules,DeviceEventEmitter} from "react-native";
 import Geolocation from "@react-native-community/geolocation";
+// biblio li katkhalik ta3raf wach téléphone tankhad wla la
 import RNShake from "react-native-shake"
+// biblio li katkhalik tssifat sms direct lwa7ad namra
 import SmsAndroid from 'react-native-get-sms-android';
 import {checkWiFiStatus} from "../helpers/functions"
+// biblio katkhalik ta3raf wach mconnectet=r lwifi wla la
 import NetInfo from '@react-native-community/netinfo'
+//biblio katkhalik tkharaj sawt dyal wa7ad fichier, mp3 wla wav, etc ...
 import Sound from 'react-native-sound'
-import WifiManager from "react-native-wifi-reborn";
 
-
-const DirectSms = NativeModules.DirectSms
 
 class SendMyLocation extends React.Component {
   constructor(props) {
@@ -21,13 +24,14 @@ class SendMyLocation extends React.Component {
     });
   }
 
+  // objet fih les variables li ma7tajin
   state = {
-    lockShake : false,
-    obstacle_bas : false,
-    obstacle_haut : false,
+    lockShake : false,// bach n7absso partage dyal sms, ila kan true ma3adnach l7a9 nssifto sms 7ta doz 3 minutes
+    obstacle_bas : false,// bach n3arfo wach obstacle bas kayn wla la
+    obstacle_haut : false, // bach n3arfo wach obstacle haut kayn wla la
   }
 
-
+  // bach nssifto sms lwa7ad namra
   sendMsg = (phoneNumber,msg) => {
     SmsAndroid.autoSend(
       phoneNumber,
@@ -120,11 +124,13 @@ class SendMyLocation extends React.Component {
 
   // https://www.google.com/maps/search/?api=1&query=
 
+  // khod les coordonnés dyal gps dyal téléphone
   getCoordiantes = () => {
     Geolocation.getCurrentPosition(
       position => {
         console.log(position);
         const {latitude, longitude} = position.coords;
+        // partager localisation dyali m3a contact li 7at
         this.shareMyLocation(latitude,longitude)
       },
 
@@ -134,6 +140,7 @@ class SendMyLocation extends React.Component {
     );
   };
 
+  // hna fen kayn partage dyal localisation lwa7ad namra
   shareMyLocation = (latitude, longitude) => {
 
     // const msg = "I shared with you my location in order to find me because i think i'm lost, and sorry for any inconvience " +
@@ -148,6 +155,9 @@ class SendMyLocation extends React.Component {
 
   };
 
+
+
+  // njibo les données mn ESP32 dyal les ultrasonics
   getHttpData = async () => {
     await NetInfo.fetch().then(state => {
         console.log(state)
@@ -156,18 +166,21 @@ class SendMyLocation extends React.Component {
         try {
 
           fetch(
-            'http://192.168.3.1/'
-          ).then(async (response) => {
+            'http://192.168.3.1/' // mn had address ip li f wifi li mconnectin lih
+          )
+          // mn ta3tik les données dir hadchi
+          .then(async (response) => {
 
-            if (response.status == 200) {
+            if (response.status == 200) { // ila kan kolchi mzn makayn 7ta mochkil f réseau
 
-              let json = await response.json();
-              console.log(json);
+              let json = await response.json(); // tssana 7ta takhod donnée kamal 3la had chkal {"bas_dis" : 1000,"haut_dist" : 1500}
+              console.log(json); // pour l'affichage 
               console.log("bas_dist",json.bas_dist)
             //   this.setState({ sensor_value: json.sensor_value });
 
-              // for bottom obstacle
-              if (json.bas_dist <= 500 &&  !this.state.obstacle_bas) {
+              // for bottom obstacle 
+              // condition m7a9a9 9al mn 0.5m o makan 7ta obstacle mn 9bal
+              if (json.bas_dist <= 500 &&  !this.state.obstacle_bas) {  // !false => true | !true => false
                 var whoosh = new Sound(
                   'obstacle_devant_vous.wav',
                   Sound.MAIN_BUNDLE,
@@ -176,7 +189,10 @@ class SendMyLocation extends React.Component {
                       console.log('failed to load the sound', error);
                       return;
                     }
+
+                    // 7bass takhraj dyal sawt dyal obstacle devant vous, 7ta l9aw passage
                     this.setState({obstacle_bas: true});
+                    //------------------------------
                     whoosh.play(success => {
                       if (success) {
                         console.log('successfully finished playing');
@@ -190,6 +206,7 @@ class SendMyLocation extends React.Component {
                 );
               }
 
+              // kharaj sawt ila makanch obstacle db walakin kan mn 9bal
               if (json.bas_dist > 500 && this.state.obstacle_bas) {
                 var whoosh = new Sound(
                   'permission_de_passage.mp3',
@@ -215,6 +232,8 @@ class SendMyLocation extends React.Component {
 
 
               // for obstacle above
+              // bach nkharjo sawt dyal obstacle li lfo9 khass lmassafa dyal obstacle li lfo9 tkon sghar mn 2m
+              // o ma3andi 7ta obstacle bas o ma3andi 7ta obstacle haut
               if (json.haut_dist <= 2000 && !this.state.obstacle_bas &&  !this.state.obstacle_haut) {
                 var whoosh = new Sound(
                   'obstacle_en_haut.wav',
@@ -315,11 +334,16 @@ class SendMyLocation extends React.Component {
       })
       .catch(e => console.log(e));
 
+
+      // ki tssanat li telephone wach tankhad, ila tankhad kissifat sms fih localisation dyali lwa7ad namra
+      // o ki7bass l partage l 3 minutes
       this.shakeRef = RNShake.addListener(()=> {
         if(!this.state.lockShake){
           this.setState({lockShake : true})
           console.log("phone is shaking -> share location")
           this.requestSmsPermission()
+          
+          // minuteur kitssana 7ta doz 3minutes 3ad kiraja3 liya l7a9 nssifat sms
           this. timeoutRef = setTimeout(() => {
             this.setState({lockShake : false})
           }, 3*60*1000);

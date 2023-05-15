@@ -20,8 +20,7 @@ import SendMyLOcation from './components/SendMyLocation';
 
 
 
-
-
+// fichier principal
 class App extends React.Component {
 
   state = {
@@ -33,6 +32,7 @@ class App extends React.Component {
   render(){
     return(
       <SafeAreaView style={styles.container} >
+        {/* composant a ajouter sur application */}
         <SendMyLOcation />
       </SafeAreaView>
     )
