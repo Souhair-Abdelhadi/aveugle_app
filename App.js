@@ -15,35 +15,52 @@ import {
   Image,
   View,
 } from 'react-native';
-import SendMyLOcation from './components/SendMyLocation';
+import SendMyLocation from './components/SendMyLocation';
+import Contacts from './components/Contacts';
+import { calculateDistance } from './helpers/functions';
+import Loading from './components/Loading';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import ChangeContacts from './components/ChangeContacts';
 
 
 
+const Stack = createNativeStackNavigator();
 
-// fichier principal
-class App extends React.Component {
+function App() {
 
-  state = {
-    imageLoaded : false,
-  }
+  
+  return (
+    
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName='Loading' >
+        <Stack.Screen name="Loading" component={Loading} options={{
+          headerShown : false
+        }} />
+        <Stack.Screen name="Contacts" component={Contacts} options={{
+          headerShown : false
+        }} />
+        <Stack.Screen name="App" component={SendMyLocation} options={{
+          headerShown : false
+        }}/>
+        <Stack.Screen name="Change" component={ChangeContacts} options={{
+          headerShown : false
+        }}/>
+      </Stack.Navigator>
+    </NavigationContainer>
 
+    // <ChangeContacts />
+  );
 
-
-  render(){
-    return(
-      <SafeAreaView style={styles.container} >
-        {/* composant a ajouter sur application */}
-        <SendMyLOcation />
-      </SafeAreaView>
-    )
-  }
 }
 
-const styles = StyleSheet.create({
-  container : {
-    flex : 1,
-  },
-
-});
 
 export default App;
+
+
+{/* <SafeAreaView style={styles.container} >
+composant a ajouter sur application
+<SendMyLOcation />
+<Contacts />
+<Loading />
+</SafeAreaView> */}
